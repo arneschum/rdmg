@@ -64,11 +64,118 @@ gdalwarp
 ```
 
 - Sie sollten nun die Hilfe für das Werkzeug erhalten
-Kreieren Sie eine *.bat-Datei und öffnen Sie diese. In die erste Zeile kommt der cd-Befehl
-!! Arbeiten Sie auf einem anderen Laufwerk (d.h .sie schreiben die Batch z.B. auf einem USB-Stick müssen 3 Zeilen angeben werden, hier steht vor dem cd-Befehl noch die Änderungen des Laufwerks durch z.B. „C:“ 
-Nun (zweite bzw. dritte Zeile) müssen wir zunächst gdalwarp angeben:
+- Kreieren Sie eine *.bat-Datei und öffnen Sie diese. In die erste Zeile kommt der cd-Befehl
+  - !! Arbeiten Sie auf einem anderen Laufwerk (d.h .sie schreiben die Batch z.B. auf einem USB-Stick müssen 3 Zeilen angeben werden, hier steht vor dem cd-Befehl noch die Änderungen des Laufwerks durch z.B. „C:“ 
+- Nun (zweite bzw. dritte Zeile) müssen wir zunächst gdalwarp angeben:
+```bash
 gdalwarp –flag Wert1 –flag2 Wert2 ….
-Hier müssen Sie Parameter wie Quell-CRS, Ziel-CRS, Clip-Ausdehnung, die x,y Auflösung (wir wollen eine Auflösung von 25m für x und y!), das Source-File (!! Ursprungshöhenmodell) und das Ziel-File angeben!!
-! Achten Sie darauf, keine Umlaute in Pfad und Datei zu verwenden. Bei Leerzeichen Pfad und Datei in „“ setzen !
-Tipp: Schreiben Sie in die letzte Zeile „PAUSE“. Dies verhindert, dass die Kommandozeile sofort wieder verschwindet. So kann man die Fehler bzw. die Fertigstellung erkennen.
-6c. Wie heißt der vollständige gdalwarp-Befehl, das uns für die gleichen Koordinaten wie das Polygon das umprojizierte Raster in x, y 25m Auflösung generiert? (Aus dem Original-Höhenmodell!)
+```
+- Hier müssen Sie Parameter wie Quell-CRS, Ziel-CRS, Clip-Ausdehnung, die x,y Auflösung (wir wollen eine Auflösung von 25m für x und y!), das Source-File (!! Ursprungshöhenmodell) und das Ziel-File angeben!!
+  - ! Achten Sie darauf, keine Umlaute in Pfad und Datei zu verwenden. Bei Leerzeichen Pfad und Datei in „“ setzen !
+- Tipp: Schreiben Sie in die letzte Zeile „PAUSE“. Dies verhindert, dass die Kommandozeile sofort wieder verschwindet. So kann man die Fehler bzw. die Fertigstellung erkennen.
+
+**6c. Wie heißt der vollständige gdalwarp-Befehl, das uns für die gleichen Koordinaten wie das Polygon das umprojizierte Raster in x, y 25m Auflösung generiert? (Aus dem Original-Höhenmodell!)**
+
+ Laden Sie das neu erstellte Höhenmodell und entfernen Sie alle weiteren Layer aus dem TOC!
+- Erstellen Sie in QGIS aus dem Höhenmodell ein Hillshade  
+**7. Welches Tool ermöglicht das?**
+  - Output: harz_utm32_hs.tif
+  - Alle anderen Parameter können sie belassen  
+**8. Auf wie viel Grad setzt QGIS die Sonne und welcher Himmelsrichtung entspricht das?**
+**9. Überprüfen Sie die Standardeinstellungen für ein Hillshade in ArcMap! Was stellen Sie fest?**
+
+- Wir wollen nun auch ein Neigungs-und Expositionsraster unseres Harz-Ausschnittes (d.h. mit dem Höhenmodell ausschnitt_harz_utm32.tif) mit einer *.bat-Datei schreiben.
+- Erstellen sie analog des Warp-Befehls das Neigungsraster in Grad mit dem Zevenbergen Thorne Algorithmus. 
+- Erstellen Sie in einer weiteren Zeile ein Expositionsraster (aspect) ähnlich der vorherigen Zeile mit dem Zevenbergen Thorne Algorithmus
+**10. Wie lautet das komplette *.bat file, das unsere 3 Oberflächen (umprojiziertes und geclipptes DEM, Slope und Aspect) generiert?**
+**11. Welche Art von Rasteroperator ist die Neigungs- und Expositionsberechnung?**
+
+- Bevor wir zur Standortanalyse zurückkehren, machen wir noch einen Abstecher zur Automatisierung. Wir haben ja schon festgestellt, dass Kommandozeilenwerkzeuge ideal geeignet sind, um Batch-Processing zu vereinfachen. Denken Sie an die Transformation hunderter Luftbilder in ein anderes Koordinatensystem, das manuell sehr arbeits- und zeitintensiv wäre.
+- Wir werden und nun einem ähnlichen Beispiel zuwenden. Nehmen wir an, wir haben einen Ordner mit unzähligen Bildern, von denen wir weder Projektion noch Ausdehnung wissen.
+- Ziel dieser Aufgabe ist es, die Metadaten aller Dateien (bei uns die gerade erstellten *.tif) in einem Ordner auszulesen und in einer Textdatei zu speichern, um eine bessere Übersicht der darin enthaltenen Dateien zu bekommen. 
+
+- Dazu bauen wir wieder eine Batch-Datei auf und gehen wie folgt vor:
+  - Wir brauchen in Zeile 1 wieder den Verweis auf das C-Laufwerk
+  - Zeile 2 beinhaltet das Wechseln auf unser benötigtes GDAL-Werkzeug (gdalinfo.exe)
+  - Nun definieren wir die Variablen
+    - Variablen werden in der Kommandozeile:
+      - Gesetzt (set folder=xxx !!! Keine Leerzeichen !!!) und 
+      - Aufgerufen (echo %folder%)
+    - Definieren Sie eine Variable für den Ordner und einen für die Logdatei (d.h. nur den Namen, z.B. log.txt)
+    - Lassen Sie sich zunächst die Logdatei zusammengesetzt aus Ordner und Dateiname ausgeben (echo), um den ersten Teilerfolg verbuchen zu können (nur über echo und nicht in die Textdatei)
+    - Weil wir den Text an die Datei anhängen (! Zum Neuschreiben einer Datei benutzt man „> [Pfad + Logdatei]“, zum Anhängen „>> [Pfad + Logdatei]“), löschen wir in Zeile 5 zunächst die log-Datei (zusammengesetzt aus Ordner und Dateiname), um nicht die gleichen Informationen wieder und wieder zu schreiben.  
+
+- Nun kommt der wirklich anspruchsvolle Teil der Aufgabe
+  - Wir müssen einen Loop schreiben, der alle Tiffs im Ordner, d.h. „%folder%*.tif“ durchsucht und für jedes Tiff die Metadaten per „gdalinfo“ ausliest
+  - Trennen Sie für eine bessere Lesbarkeit des Output jede Dateiinformation im Loop mit einer:
+    - Leerzeile: „echo.“
+    - Und einer Übersichtszeile: „echo ******************“
+  - Recherchieren Sie für die Lösung, wie man einen Loop in der Kommandozeile schreibt
+
+**12. Wie heißt die vollständige Batch-Datei?**
+
+- Zurück zur Standortsuche: Wir haben 3 Rasteroberflächen: DEM, Slope & Aspect
+- Für eine Aufstellung einer Windfarm-Park mit 3 Windrädern sucht die Gemeinde ein passendes Grundstück mit folgenden Kriterien
+  - Da die dominierende Windrichtung aus Westen kommt, sollte die Ausrichtung des Grundstücks >= 250° und <= 290° West liegen
+  - Bekanntlich ist Wind stärker je höher man kommt. Der Richtwert für die Windräder sollte also >= 700 HM sein
+  - Für Bau und Wartung sollte die Neigung des Grundstücks <= 25° sein
+  - Das Grundstück sollte für alle 3 Windräder eine Mindestgröße von 2 ha haben
+
+- Lassen wir zunächst die Mindestgröße außer Acht und formulieren die anderen 3 Parameter
+  - Kreieren Sie ein neues Raster, das diese Kriterien erfüllt
+  - Tipp: Mit dem Raster Calculator (dt. Rasterrechner) können Sie ein binäres Raster erstellen, dass alle erfüllten Werte im Resultat mit 1 darstellt. Hier können alle im TOC geladenen Layer benutzt werden!
+**13. Wie heißt die benötigte Formel?**
+
+- Visualisieren Sie NUR diese Flächen in einem Gelbton und legen Sie es über das Hillshade!
+
+**14. Wie gehen Sie vor?**
+
+- Wenden wir uns nun der Mindestgröße zu:
+
+**15. Wie heißt das Tool, das eine Mindestgröße an zusammenhängenden Pixel erfordert. Geben Sie unser 	Windfarm-Raster als Inputlayer an und den 	Schwellenwert mit 8 Pixeln**
+
+- Bereinigen Sie über den Raster Calculator das neu erstellte Raster so, dass die negativen Werte als 0 ersetzt werden
+**16. Wie heißt die Formel?**
+
+  - Lassen Sie sich auch hier nicht von dem Aussehen des Rasters täuschen. Der richtige Pixelwert ist 1!
+    - TIPP: Copy / Paste in QGIS 
+  - Stellen Sie das Raster wieder so ein, dass nur diese Werte angezeigt werden
+  - Polygonisieren Sie die Raster und berechnen Sie in einer neuen Spalte die Flächen in Hektar
+    - Dies erfordert zunächst die Polygonisierung des Raster mit den Mindestgrößen und danach die Berechnung über den Field Calculator mit erstellen eines neuen Feldes!
+
+- Löschen Sie aus dem Shapefile das Polygon mit dem Wert 0 (das allumschließende Rechteck)
+- Berechnen Sie im Anschluss über den Field Calculator die Flächen in Hektar
+- 
+**17. Wie heißt die Formel?**
+
+- Löschen Sie in der Attributtabelle alle Polygone < 3 Hektar
+
+**18. Wie viel Polygone stellen potenzielle Standorte da?**
+
+![alt text](imgs/suitable_sites.png)
+
+- Aus Gründen des schwierigen Zugangs interessiert man sich bei Bau und Wartung auch für die Luftliniendistanzen von Goslar (als möglichen Ausgangspunkt für Helikopterflüge)
+- Nutzen Sie für die weiteren Berechnungen das Shapefile „Goslar.shp“
+- Berechnen Sie für alle Polygone die Distanz nach Goslar
+  - Tipp: Finden Sie hierfür zunächst die Zentroide für die Berechnung
+
+**19. Welches Werkzeug brauchen wir für die Bildung der Zentroide**
+
+- Erstellen Sie für die Zentroide mit dem Field Calculator einen Primärschlüssel wiederum als neue Spalte: „pk“. Diesen brauchen wir zur Erkennung der Polygone (da es bisher nur die Binärspalte 0 und 1 gibt)
+
+**20. Welchen Operator brauchen wir dafür?**  
+**21. Welches Werkzeug brauchen wir zur Berechnung der Distanzen**  
+**22. Welche ID und Distanz haben die Polygone mit der kürzesten und längsten Verbindung?**    
+
+- Nun wollen wir noch einen anderen Aspekt untersuchen; die Sichtbarkeit der Windräder vom staatlich anerkannten Luftkurort Altenau. Ziel ist es, potenzielle Standorte zu finden, die von der Gemeinde nicht eingesehen werden, sodass Die Qualität des Kurortes nicht beeinträchtigt wird.
+- Laden Sie sich in QGIS die Erweiterung Visibility Analysis (Viewshed) herunter und berechnen Sie die Sichtbarkeit der Windräder (mit den Flächenzentroiden). Beachten Sie dabei bitte folgendes: 
+  - Der Search Radius muss alle Zielkoordinaten enthalten
+  - Die Beobachterhöhe soll 50m, die der Windräder 90m sein  
+
+**23. Wie viele potenzielle Standorte bleiben nach der 	Sichtbarkeitsanalyse vorhanden?**
+
+- Um nun aus den verbleibenden Standorten den besten auszuwählen, wollen wir mittels einer Line of Sight Analyse das Profil gen Westen anschauen, um zu sehen welcher Standort am wenigsten im Windschatten einer vorgelagerten Hügelkette liegt.
+- Laden sie sich dazu die Erweiterung Profile Tool herunter und erzeugen Sie von den verbliebenen potenziellen Standorten Richtung Westen ein Profil der Höhe
+  - ! Wichtig: Vom Zentroid Richtung Westen
+
+**24. 	Entscheiden Sie sich für einen Standort, der 	durch seine gute Exposition hervorsticht. Wie ist dessen Koordinate?**
