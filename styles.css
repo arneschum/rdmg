@@ -1,0 +1,16 @@
+body {
+  font-family: Arial, sans-serif;
+  color: #222;
+  background-color: rgb(226, 226, 226);
+}
+
+h1, h2, h3 {
+  color: #005cc5;
+}
+
+ol li {
+    color: #c5006c;
+    font-size: large;
+    font-weight: bold;
+
+}
